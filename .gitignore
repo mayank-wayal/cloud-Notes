@@ -7,3 +7,7 @@ npm-debug.log*
 coverage/
 backend/.env
 frontend/.env
+.next/
+build/
+.cache/
+.vercel/
