@@ -1,0 +1,5 @@
+npm-debug.log
+.env
+.env.*
+coverage
+.DS_Store
