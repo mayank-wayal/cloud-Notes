@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Download, Eye, FileText, Search, Trash2 } from "lucide-react";
+import { Download, Eye, FileText, PenLine, Search, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ export function NotesTable({ notes, loading, onDownload, onDelete }: NotesTableP
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const filteredNotes = useMemo(() => {
-    const nextNotes = notes.filter((note) => note.title.toLowerCase().includes(query.trim().toLowerCase()));
+    const nextNotes = notes.filter((note) => `${note.title} ${note.content || ""} ${(note.tags || []).join(" ")}`.toLowerCase().includes(query.trim().toLowerCase()));
 
     return nextNotes.sort((a, b) => {
       if (sortBy === "title") return a.title.localeCompare(b.title);
@@ -51,7 +51,7 @@ export function NotesTable({ notes, loading, onDownload, onDelete }: NotesTableP
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-indigo-300">Library</p>
           <h2 className="mt-2 text-2xl font-bold tracking-tight text-white">Recent notes</h2>
-          <p className="mt-1 text-sm text-slate-500">{notes.length} uploaded file{notes.length === 1 ? "" : "s"} in your private workspace</p>
+          <p className="mt-1 text-sm text-slate-500">{notes.length} workspace item{notes.length === 1 ? "" : "s"} across notes and files</p>
         </div>
         <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto">
           <label className="flex h-11 w-full items-center gap-3 rounded-2xl border border-slate-800/60 bg-slate-950/60 px-3 text-sm text-slate-500 transition focus-within:border-indigo-400/60 md:w-72">
@@ -78,8 +78,8 @@ export function NotesTable({ notes, loading, onDownload, onDelete }: NotesTableP
               <span className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-2xl border border-slate-800 bg-slate-900/80 text-indigo-200">
                 <FileText size={22} />
               </span>
-              <h3 className="text-lg font-semibold text-white">{notes.length === 0 ? "No notes uploaded yet" : "No matching notes"}</h3>
-              <p className="mt-2 max-w-sm text-sm text-slate-500">{notes.length === 0 ? "Upload your first file to start building your secure library." : "Try another title or clear your search."}</p>
+              <h3 className="text-lg font-semibold text-white">{notes.length === 0 ? "No workspace items yet" : "No matching notes"}</h3>
+              <p className="mt-2 max-w-sm text-sm text-slate-500">{notes.length === 0 ? "Create a note or upload your first file to start building your secure library." : "Try another title, tag, or phrase."}</p>
             </div>
           </div>
         </CardContent>
@@ -109,23 +109,25 @@ export function NotesTable({ notes, loading, onDownload, onDelete }: NotesTableP
                     <td className="max-w-[260px] px-5 py-4">
                       <div className="flex items-center gap-3">
                         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-slate-800/70 bg-slate-900/80 text-indigo-200">
-                          <FileText size={16} />
+                          {note.note_type === "note" ? <PenLine size={16} /> : <FileText size={16} />}
                         </span>
                         <div className="min-w-0">
                           <span className="block truncate text-sm font-medium text-slate-200">{note.title}</span>
-                          <span className="mt-1 inline-flex rounded-full bg-indigo-500/10 px-2 py-0.5 text-xs text-indigo-200">Personal</span>
+                          <span className="mt-1 inline-flex rounded-full bg-indigo-500/10 px-2 py-0.5 text-xs text-indigo-200">{note.note_type === "note" ? "Note" : "File"}</span>
                         </div>
                       </div>
                     </td>
-                    <td className="whitespace-nowrap px-5 py-4 text-sm text-slate-500">{formatBytes(Number(note.file_size))}</td>
-                    <td className="whitespace-nowrap px-5 py-4 text-sm text-slate-500">{formatDate(note.created_at)}</td>
+                    <td className="whitespace-nowrap px-5 py-4 text-sm text-slate-500">{note.note_type === "note" ? `${note.content?.length || 0} chars` : formatBytes(Number(note.file_size))}</td>
+                    <td className="whitespace-nowrap px-5 py-4 text-sm text-slate-500">{formatDate(note.updated_at || note.created_at)}</td>
                     <td className="whitespace-nowrap px-5 py-4 text-right">
-                      <Link href={`/preview?id=${note.id}`} className="mr-1 inline-flex h-9 w-9 items-center justify-center rounded-2xl text-slate-300 transition hover:bg-slate-900 hover:text-white" aria-label={`Preview ${note.title}`}>
-                        <Eye size={16} />
+                      <Link href={note.note_type === "note" ? `/editor?id=${note.id}` : `/preview?id=${note.id}`} className="mr-1 inline-flex h-9 w-9 items-center justify-center rounded-2xl text-slate-300 transition hover:bg-slate-900 hover:text-white" aria-label={`${note.note_type === "note" ? "Edit" : "Preview"} ${note.title}`}>
+                        {note.note_type === "note" ? <PenLine size={16} /> : <Eye size={16} />}
                       </Link>
-                      <Button variant="ghost" className="h-9 w-9 px-0" onClick={() => onDownload(note.id)} aria-label={`Download ${note.title}`}>
-                        <Download size={16} />
-                      </Button>
+                      {note.note_type === "file" ? (
+                        <Button variant="ghost" className="h-9 w-9 px-0" onClick={() => onDownload(note.id)} aria-label={`Download ${note.title}`}>
+                          <Download size={16} />
+                        </Button>
+                      ) : null}
                       <Button variant="ghost" className="h-9 w-9 px-0 text-red-300 hover:text-red-200" onClick={() => onDelete(note.id)} aria-label={`Delete ${note.title}`}>
                         <Trash2 size={16} />
                       </Button>

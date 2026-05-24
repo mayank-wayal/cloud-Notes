@@ -1,4 +1,6 @@
-import { Amplify } from "@aws-amplify/core";
+import { Amplify } from "aws-amplify";
+
+const isPlaceholder = (value: string) => !value || value.includes("replace_with") || value.includes("replace_me");
 
 const cognitoConfig = {
   Auth: {
@@ -10,6 +12,14 @@ const cognitoConfig = {
   }
 };
 
-Amplify.configure(cognitoConfig);
+export const isCognitoConfigured =
+  !isPlaceholder(cognitoConfig.Auth.Cognito.userPoolId) &&
+  !isPlaceholder(cognitoConfig.Auth.Cognito.userPoolClientId);
+
+if (isCognitoConfigured) {
+  Amplify.configure(cognitoConfig);
+} else if (typeof window !== "undefined") {
+  console.warn("CloudNotes Cognito is not configured. Add NEXT_PUBLIC_COGNITO_* values to frontend/.env.local.");
+}
 
 export default cognitoConfig;

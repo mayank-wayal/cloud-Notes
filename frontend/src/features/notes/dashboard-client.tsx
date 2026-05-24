@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { AlertCircle, ArrowUpRight, Calendar, Database, FileText, Plus, Sparkles, UploadCloud } from "lucide-react";
+import { AlertCircle, ArrowUpRight, Calendar, Database, FileText, PenLine, Plus, Sparkles, UploadCloud } from "lucide-react";
 import { NotesTable } from "@/components/dashboard/notes-table";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { UploadPanel } from "@/components/dashboard/upload-panel";
@@ -61,12 +61,16 @@ export function DashboardClient() {
                   Your notes, files, and downloads in one calm workspace.
                 </h2>
                 <p className="mt-5 max-w-2xl text-base leading-7 text-slate-400">
-                  Upload private files, search your library, and preview recent activity without leaving the dashboard.
+                  Write markdown notes, upload private files, search your library, and preview recent activity without leaving the dashboard.
                 </p>
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                  <Link href="/upload" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-slate-200">
+                  <Link href="/editor" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-slate-200">
+                    <PenLine size={17} />
+                    New note
+                  </Link>
+                  <Link href="/upload" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-700/60 bg-slate-950/50 px-5 text-sm font-semibold text-slate-200 transition hover:-translate-y-0.5 hover:bg-slate-900">
                     <Plus size={17} />
-                    Upload note
+                    Upload file
                   </Link>
                   <Link href="/notes" className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-700/60 bg-slate-950/50 px-5 text-sm font-semibold text-slate-200 transition hover:-translate-y-0.5 hover:bg-slate-900">
                     Browse library
@@ -95,16 +99,17 @@ export function DashboardClient() {
                 </div>
                 <div className="mt-5 rounded-2xl bg-white/[0.03] p-4">
                   <p className="text-3xl font-bold text-white">{formatBytes(stats.storage)}</p>
-                  <p className="mt-1 text-sm text-slate-500">stored across {stats.totalNotes} files</p>
+                  <p className="mt-1 text-sm text-slate-500">stored across {stats.files} uploaded files</p>
                 </div>
               </div>
             </div>
           </motion.section>
 
-          <motion.section variants={fadeUp} className="mb-6 grid gap-4 md:grid-cols-3">
-            <StatCard label="Total notes" value={String(stats.totalNotes)} detail="Files in your library" icon={FileText} tone="indigo" />
+          <motion.section variants={fadeUp} className="mb-6 grid gap-4 md:grid-cols-4">
+            <StatCard label="Workspace items" value={String(stats.totalNotes)} detail="Notes and uploads" icon={FileText} tone="indigo" />
+            <StatCard label="Text notes" value={String(stats.textNotes)} detail={`${stats.pinned} pinned`} icon={PenLine} tone="violet" delay={0.02} />
             <StatCard label="Storage used" value={formatBytes(stats.storage)} detail="Across private uploads" icon={Database} tone="blue" delay={0.04} />
-            <StatCard label="Latest upload" value={formatDate(stats.latest)} detail="Most recent activity" icon={Calendar} tone="violet" delay={0.08} />
+            <StatCard label="Latest activity" value={formatDate(stats.latest)} detail="Most recent change" icon={Calendar} tone="violet" delay={0.08} />
           </motion.section>
 
           {error ? (
@@ -127,11 +132,11 @@ export function DashboardClient() {
                 <p className="text-xs font-medium uppercase tracking-[0.18em] text-indigo-300">Activity</p>
                 <h3 className="mt-2 text-xl font-bold text-white">Recent movement</h3>
                 <div className="mt-6 space-y-5">
-                  {(notes.slice(0, 4).length ? notes.slice(0, 4) : [{ id: "empty-state", title: "Upload your first note", created_at: new Date().toISOString(), file_size: 0 }]).map((note) => (
+                  {(notes.slice(0, 4).length ? notes.slice(0, 4) : [{ id: "empty-state", title: "Create your first note", note_type: "note" as const, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), file_size: 0 }]).map((note) => (
                     <div key={note.id} className="relative border-l border-slate-800 pl-4">
                       <span className="absolute -left-1.5 top-1 h-3 w-3 rounded-full bg-indigo-300" />
                       <p className="truncate text-sm font-medium text-slate-200">{note.title}</p>
-                      <p className="mt-1 text-xs text-slate-500">{formatDate(note.created_at)}</p>
+                      <p className="mt-1 text-xs text-slate-500">{formatDate(note.updated_at || note.created_at)}</p>
                     </div>
                   ))}
                 </div>
@@ -139,6 +144,7 @@ export function DashboardClient() {
               <div className="premium-card rounded-2xl p-6">
                 <p className="text-xs font-medium uppercase tracking-[0.18em] text-indigo-300">Quick actions</p>
                 <div className="mt-5 grid gap-3">
+                  <Link href="/editor" className="rounded-2xl bg-white/[0.04] px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/[0.07]">Create a note</Link>
                   <Link href="/upload" className="rounded-2xl bg-white/[0.04] px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/[0.07]">Upload a file</Link>
                   <Link href="/notes" className="rounded-2xl bg-white/[0.04] px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/[0.07]">Open notes library</Link>
                   <Link href="/settings" className="rounded-2xl bg-white/[0.04] px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/[0.07]">Review settings</Link>

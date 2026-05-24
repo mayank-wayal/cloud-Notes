@@ -17,7 +17,7 @@ if (!databaseUrl) {
 
 const pool = new pg.Pool({
   connectionString: databaseUrl,
-  ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : false
+  ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false, servername: new URL(databaseUrl).hostname } : false
 });
 
 try {

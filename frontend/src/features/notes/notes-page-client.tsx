@@ -37,7 +37,7 @@ export function NotesPageClient() {
           <motion.section variants={fadeUp} className="mb-6">
             <p className="text-sm font-medium text-slate-500">Library</p>
             <h1 className="mt-1 text-3xl font-bold tracking-tight text-white">Notes</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Browse, filter, preview, and download every file in your private workspace.</p>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Browse, filter, edit, preview, and download every note and file in your private workspace.</p>
           </motion.section>
           <motion.section variants={fadeUp}>
             <NotesBrowser notes={notes} loading={loading} onDownload={handleDownload} onDelete={handleDelete} />

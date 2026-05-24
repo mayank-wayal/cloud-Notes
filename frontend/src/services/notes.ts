@@ -1,5 +1,5 @@
 import { api } from "./api";
-import type { Note } from "@/types/note";
+import type { Note, NotePreview } from "@/types/note";
 
 type UploadNoteInput = {
   title: string;
@@ -7,9 +7,35 @@ type UploadNoteInput = {
   onProgress?: (progress: number) => void;
 };
 
+export type CreateTextNoteInput = {
+  title: string;
+  content: string;
+  tags?: string[];
+  isPinned?: boolean;
+};
+
+export type UpdateTextNoteInput = Partial<CreateTextNoteInput> & {
+  isArchived?: boolean;
+};
+
 export const fetchNotes = async () => {
   const { data } = await api.get<{ notes: Note[] }>("/notes");
   return data.notes;
+};
+
+export const fetchNote = async (noteId: string) => {
+  const { data } = await api.get<{ success: boolean; note: Note }>(`/notes/${noteId}`);
+  return data.note;
+};
+
+export const createTextNote = async (input: CreateTextNoteInput) => {
+  const { data } = await api.post<{ success: boolean; note: Note }>("/notes/create", input);
+  return data.note;
+};
+
+export const updateTextNote = async (noteId: string, input: UpdateTextNoteInput) => {
+  const { data } = await api.put<{ success: boolean; note: Note }>(`/notes/${noteId}`, input);
+  return data.note;
 };
 
 export const uploadNote = async ({ title, file, onProgress }: UploadNoteInput) => {
@@ -17,7 +43,7 @@ export const uploadNote = async ({ title, file, onProgress }: UploadNoteInput) =
   formData.append("title", title);
   formData.append("file", file);
 
-  const { data } = await api.post<{ note: Note }>("/notes/upload", formData, {
+  const { data } = await api.post<{ success: boolean; note: Note }>("/notes/upload", formData, {
     headers: {
       "Content-Type": "multipart/form-data"
     },
@@ -35,6 +61,11 @@ export const deleteNote = async (noteId: string) => {
 };
 
 export const getDownloadUrl = async (noteId: string) => {
-  const { data } = await api.get<{ url: string }>(`/notes/download/${noteId}`);
+  const { data } = await api.get<{ success?: boolean; url: string }>(`/notes/download/${noteId}`);
   return data.url;
+};
+
+export const getPreviewUrl = async (noteId: string) => {
+  const { data } = await api.get<NotePreview>(`/notes/${noteId}/preview`);
+  return data;
 };

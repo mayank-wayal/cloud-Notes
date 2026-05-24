@@ -1,5 +1,5 @@
 import axios, { AxiosError } from "axios";
-import { fetchAuthSession } from "@aws-amplify/auth";
+import { fetchAuthSession } from "aws-amplify/auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
@@ -39,7 +39,7 @@ api.interceptors.response.use(
 
 export const getApiError = (error: unknown) => {
   if (error instanceof AxiosError) {
-    return error.response?.data?.message || error.message || "Something went wrong";
+    return error.response?.data?.error || error.response?.data?.message || error.message || "Something went wrong";
   }
 
   if (error instanceof Error) return error.message;

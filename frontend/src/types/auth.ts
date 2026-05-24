@@ -10,6 +10,16 @@ export type AuthSession = {
   user: User;
 };
 
+export type AuthNextStep =
+  | {
+      status: "CONFIRM_SIGN_UP";
+      email: string;
+    }
+  | {
+      status: "RESET_PASSWORD";
+      email: string;
+    };
+
 export type LoginPayload = {
   email: string;
   password: string;
@@ -17,4 +27,19 @@ export type LoginPayload = {
 
 export type RegisterPayload = LoginPayload & {
   name: string;
+};
+
+export type ConfirmSignupPayload = {
+  email: string;
+  code: string;
+};
+
+export type ForgotPasswordPayload = {
+  email: string;
+};
+
+export type ResetPasswordPayload = {
+  email: string;
+  code: string;
+  password: string;
 };

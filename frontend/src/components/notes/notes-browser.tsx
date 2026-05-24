@@ -1,6 +1,7 @@
 "use client";
 
-import { Grid2X2, List, Search } from "lucide-react";
+import { Grid2X2, List, PenLine, Search, UploadCloud } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { NoteCard } from "@/components/notes/note-card";
 import { NotesTable } from "@/components/dashboard/notes-table";
@@ -19,7 +20,10 @@ type NotesBrowserProps = {
 export function NotesBrowser({ notes, loading, onDownload, onDelete }: NotesBrowserProps) {
   const [query, setQuery] = useState("");
   const [view, setView] = useState("grid");
-  const filteredNotes = useMemo(() => notes.filter((note) => note.title.toLowerCase().includes(query.trim().toLowerCase())), [notes, query]);
+  const filteredNotes = useMemo(
+    () => notes.filter((note) => `${note.title} ${note.content || ""} ${(note.tags || []).join(" ")}`.toLowerCase().includes(query.trim().toLowerCase())),
+    [notes, query]
+  );
 
   if (loading) {
     return (
@@ -47,6 +51,26 @@ export function NotesBrowser({ notes, loading, onDownload, onDelete }: NotesBrow
           ]}
         />
       </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Link href="/editor" className="flex items-center gap-3 rounded-lg border border-indigo-400/15 bg-indigo-500/[0.06] p-4 text-slate-200 transition hover:bg-indigo-500/[0.09]">
+          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-indigo-400/15 text-indigo-200">
+            <PenLine size={17} />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold text-white">Create note</span>
+            <span className="text-xs text-slate-500">Write markdown in the browser</span>
+          </span>
+        </Link>
+        <Link href="/upload" className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-950/55 p-4 text-slate-200 transition hover:bg-slate-900/70">
+          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-900 text-slate-300">
+            <UploadCloud size={17} />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold text-white">Upload file</span>
+            <span className="text-xs text-slate-500">Add PDFs, docs, and images</span>
+          </span>
+        </Link>
+      </div>
 
       {filteredNotes.length === 0 ? (
         <Card>
@@ -54,7 +78,7 @@ export function NotesBrowser({ notes, loading, onDownload, onDelete }: NotesBrow
             <div className="grid min-h-64 place-items-center text-center">
               <div>
                 <h3 className="font-semibold text-white">{notes.length === 0 ? "Your library is empty" : "No notes found"}</h3>
-                <p className="mt-2 max-w-sm text-sm text-slate-500">{notes.length === 0 ? "Upload files and they will appear here as cards and list rows." : "Try a different search term."}</p>
+                <p className="mt-2 max-w-sm text-sm text-slate-500">{notes.length === 0 ? "Create a note or upload files and they will appear here together." : "Try a different search term."}</p>
               </div>
             </div>
           </CardContent>

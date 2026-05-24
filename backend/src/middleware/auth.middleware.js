@@ -8,6 +8,23 @@ const verifier = CognitoJwtVerifier.create({
   clientId: env.cognitoClientId
 });
 
+const toAuthError = (error) => {
+  if (error.name === "NotBeforeError" || error.name === "TokenExpiredError") {
+    return new AppError("Token has expired", 401);
+  }
+
+  if (
+    error.name?.includes("Jwt") ||
+    error.name?.includes("Cognito") ||
+    error.message?.includes("Token") ||
+    error.message?.includes("Invalid")
+  ) {
+    return new AppError("Invalid authentication token", 401);
+  }
+
+  return error;
+};
+
 export const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -19,21 +36,15 @@ export const authenticate = async (req, res, next) => {
     const token = authHeader.split(" ")[1];
     const payload = await verifier.verify(token);
 
-    // Extract user info from Cognito token
     req.user = {
-      id: payload.sub,        // Cognito user ID (UUID)
-      email: payload.email,
-      name: payload.name || payload.email
+      id: payload.sub,
+      email: payload.email || payload.username || payload["cognito:username"] || payload.sub,
+      name: payload.name || payload.username || payload["cognito:username"] || "CloudNotes user",
+      tokenUse: payload.token_use
     };
 
     next();
   } catch (error) {
-    if (error.name === "NotBeforeError" || error.name === "TokenExpiredError") {
-      next(new AppError("Token has expired", 401));
-    } else if (error.message?.includes("Token is not valid") || error.message?.includes("Invalid")) {
-      next(new AppError("Invalid token", 401));
-    } else {
-      next(error);
-    }
+    next(toAuthError(error));
   }
 };

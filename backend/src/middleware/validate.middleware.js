@@ -1,4 +1,5 @@
 import { AppError } from "../utils/AppError.js";
+import { env } from "../config/env.js";
 
 const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -36,7 +37,48 @@ export const validateUpload = (req, res, next) => {
     return next(new AppError("A file is required", 400));
   }
 
+  if (!req.file.buffer?.length) {
+    return next(new AppError("Uploaded file is empty", 400));
+  }
+
   req.body.title = title;
+  next();
+};
+
+const validateTags = (tags) => Array.isArray(tags) && tags.every((tag) => typeof tag === "string" && tag.length <= 40);
+
+export const validateCreateNote = (req, res, next) => {
+  const errors = [];
+  const title = req.body.title?.trim();
+
+  if (!title || title.length > 120) errors.push("Title is required and must be under 120 characters");
+  if (typeof req.body.content !== "string") errors.push("Content must be text");
+  if (typeof req.body.content === "string" && req.body.content.length > env.maxNoteContentChars) errors.push("Content is too large");
+  if (req.body.tags !== undefined && !validateTags(req.body.tags)) errors.push("Tags must be short text values");
+
+  if (errors.length) return next(new AppError("Validation failed", 400, errors));
+
+  req.body.title = title;
+  req.body.content = req.body.content || "";
+  next();
+};
+
+export const validateUpdateNote = (req, res, next) => {
+  const errors = [];
+
+  if (req.body.title !== undefined) {
+    const title = req.body.title?.trim();
+    if (!title || title.length > 120) errors.push("Title must be under 120 characters");
+    req.body.title = title;
+  }
+
+  if (req.body.content !== undefined && typeof req.body.content !== "string") errors.push("Content must be text");
+  if (typeof req.body.content === "string" && req.body.content.length > env.maxNoteContentChars) errors.push("Content is too large");
+  if (req.body.tags !== undefined && !validateTags(req.body.tags)) errors.push("Tags must be short text values");
+  if (req.body.isArchived !== undefined && typeof req.body.isArchived !== "boolean") errors.push("isArchived must be true or false");
+  if (req.body.isPinned !== undefined && typeof req.body.isPinned !== "boolean") errors.push("isPinned must be true or false");
+
+  if (errors.length) return next(new AppError("Validation failed", 400, errors));
   next();
 };
 

@@ -47,6 +47,9 @@ services:
       context: ./frontend
       args:
         NEXT_PUBLIC_API_URL: http://localhost:5000/api
+        NEXT_PUBLIC_COGNITO_USER_POOL_ID: ${NEXT_PUBLIC_COGNITO_USER_POOL_ID:-}
+        NEXT_PUBLIC_COGNITO_CLIENT_ID: ${NEXT_PUBLIC_COGNITO_CLIENT_ID:-}
+        NEXT_PUBLIC_COGNITO_REGION: ${NEXT_PUBLIC_COGNITO_REGION:-us-east-1}
     container_name: cloudnotes-frontend
     restart: unless-stopped
     ports:

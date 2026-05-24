@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiError } from "@/services/api";
-import { deleteNote, fetchNotes, getDownloadUrl, uploadNote } from "@/services/notes";
+import { createTextNote, deleteNote, fetchNote, fetchNotes, getDownloadUrl, updateTextNote, uploadNote, type CreateTextNoteInput, type UpdateTextNoteInput } from "@/services/notes";
 import type { Note } from "@/types/note";
 
 export function useNotes() {
@@ -32,6 +32,20 @@ export function useNotes() {
     return note;
   }, []);
 
+  const create = useCallback(async (input: CreateTextNoteInput) => {
+    const note = await createTextNote(input);
+    setNotes((current) => [note, ...current]);
+    return note;
+  }, []);
+
+  const update = useCallback(async (noteId: string, input: UpdateTextNoteInput) => {
+    const note = await updateTextNote(noteId, input);
+    setNotes((current) => current.map((item) => (item.id === note.id ? note : item)));
+    return note;
+  }, []);
+
+  const get = useCallback(async (noteId: string) => fetchNote(noteId), []);
+
   const remove = useCallback(
     async (noteId: string) => {
       const previous = notes;
@@ -53,13 +67,18 @@ export function useNotes() {
   }, []);
 
   const stats = useMemo(() => {
-    const storage = notes.reduce((sum, note) => sum + Number(note.file_size), 0);
+    const files = notes.filter((note) => note.note_type === "file");
+    const textNotes = notes.filter((note) => note.note_type === "note");
+    const storage = files.reduce((sum, note) => sum + Number(note.file_size), 0);
     return {
       totalNotes: notes.length,
+      textNotes: textNotes.length,
+      files: files.length,
+      pinned: notes.filter((note) => note.is_pinned).length,
       storage,
-      latest: notes[0]?.created_at
+      latest: notes[0]?.updated_at || notes[0]?.created_at
     };
   }, [notes]);
 
-  return { notes, loading, error, setError, loadNotes, upload, remove, download, stats };
+  return { notes, loading, error, setError, loadNotes, upload, create, update, get, remove, download, stats };
 }

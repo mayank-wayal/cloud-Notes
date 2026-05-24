@@ -20,6 +20,7 @@ export function AuthForm({ mode, loading, error, onSubmit }: AuthFormProps) {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (loading) return;
     await onSubmit(isRegister ? values : { email: values.email, password: values.password });
   };
 

@@ -7,15 +7,15 @@ import { useAuth } from "./auth-provider";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { isAuthenticated, isReady } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    if (isReady && !isAuthenticated) {
+    if (!isLoading && !isAuthenticated) {
       router.replace("/login");
     }
-  }, [isAuthenticated, isReady, router]);
+  }, [isAuthenticated, isLoading, router]);
 
-  if (!isReady || !isAuthenticated) {
+  if (isLoading || !isAuthenticated) {
     return (
       <main className="flex min-h-screen items-center justify-center p-6">
         <div className="w-full max-w-md rounded-lg border border-slate-800 bg-slate-950/70 p-6">

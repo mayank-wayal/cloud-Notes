@@ -15,7 +15,7 @@ export function SearchPageClient() {
   const query = searchParams?.get("q") || "";
   const { notes, loading, remove, download } = useNotes();
   const { toast } = useToast();
-  const results = query ? notes.filter((note) => note.title.toLowerCase().includes(query.toLowerCase())) : notes;
+  const results = query ? notes.filter((note) => `${note.title} ${note.content || ""} ${(note.tags || []).join(" ")}`.toLowerCase().includes(query.toLowerCase())) : notes;
 
   const handleDelete = async (id: string) => {
     try {
@@ -41,7 +41,7 @@ export function SearchPageClient() {
           <motion.section variants={fadeUp} className="mb-6">
             <p className="text-sm font-medium text-slate-500">Search</p>
             <h1 className="mt-1 text-3xl font-bold tracking-tight text-white">{query ? `Results for "${query}"` : "Search results"}</h1>
-            <p className="mt-2 text-sm text-slate-400">Find matching files across your private notes library.</p>
+            <p className="mt-2 text-sm text-slate-400">Find matching notes, tags, and files across your private workspace.</p>
           </motion.section>
           <motion.section variants={fadeUp}>
             <NotesBrowser notes={results} loading={loading} onDownload={handleDownload} onDelete={handleDelete} />

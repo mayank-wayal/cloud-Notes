@@ -1,9 +1,0 @@
-{
-    "chat.tools.terminal.autoApprove": {
-        "npm install": true,
-        "git rev-parse": true,
-        "git remote": true,
-        "true": true,
-        "git config": true
-    }
-}

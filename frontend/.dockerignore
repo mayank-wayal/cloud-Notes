@@ -1,6 +1,12 @@
 node_modules
+.next
+out
 dist
 npm-debug.log
+.git
+.gitignore
 .env
 .env.*
+.cache
+coverage
 .DS_Store
