@@ -11,6 +11,8 @@ type UploadDropzoneProps = {
   onUpload: (input: { title: string; file: File; onProgress?: (progress: number) => void }) => Promise<void>;
 };
 
+const acceptedFileTypes = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md,.png,.jpg,.jpeg,.gif,.webp,.zip";
+
 export function UploadDropzone({ onUpload }: UploadDropzoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
@@ -31,6 +33,8 @@ export function UploadDropzone({ onUpload }: UploadDropzoneProps) {
       setFile(null);
       setProgress(0);
       if (inputRef.current) inputRef.current.value = "";
+    } catch {
+      setProgress(0);
     } finally {
       setLoading(false);
     }
@@ -47,7 +51,7 @@ export function UploadDropzone({ onUpload }: UploadDropzoneProps) {
         </span>
         <h2 className="mt-5 text-xl font-semibold text-white">Drop files here or browse</h2>
         <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">Upload lecture notes, PDFs, documents, images, and archives into your private CloudNotes library.</p>
-        <input ref={inputRef} type="file" className="sr-only" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+        <input ref={inputRef} type="file" accept={acceptedFileTypes} className="sr-only" onChange={(event) => setFile(event.target.files?.[0] || null)} />
       </motion.label>
 
       {file ? (
@@ -63,7 +67,7 @@ export function UploadDropzone({ onUpload }: UploadDropzoneProps) {
       ) : null}
 
       <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-        <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Give this upload a title" required />
+        <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Give this upload a title" maxLength={120} required />
         <Button className="h-11" disabled={!file || loading}>
           {loading ? <Loader2 className="animate-spin" size={18} /> : <UploadCloud size={17} />}
           Upload file

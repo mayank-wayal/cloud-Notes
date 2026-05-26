@@ -12,6 +12,8 @@ type UploadPanelProps = {
   onUpload: (input: { title: string; file: File; onProgress?: (progress: number) => void }) => Promise<void>;
 };
 
+const acceptedFileTypes = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md,.png,.jpg,.jpeg,.gif,.webp,.zip";
+
 export function UploadPanel({ onUpload }: UploadPanelProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
@@ -31,6 +33,8 @@ export function UploadPanel({ onUpload }: UploadPanelProps) {
       setFile(null);
       setProgress(0);
       if (fileInput.current) fileInput.current.value = "";
+    } catch {
+      setProgress(0);
     } finally {
       setLoading(false);
     }
@@ -66,7 +70,7 @@ export function UploadPanel({ onUpload }: UploadPanelProps) {
               </span>
               <span className="mt-5 font-semibold text-white">{file ? file.name : "Choose a file or drag it here"}</span>
               <span className="mt-2 text-sm text-slate-500">{file ? formatBytes(file.size) : "PDFs, docs, images, archives, and notes"}</span>
-              <input ref={fileInput} type="file" className="sr-only" onChange={(event) => setFile(event.target.files?.[0] || null)} required />
+              <input ref={fileInput} type="file" accept={acceptedFileTypes} className="sr-only" onChange={(event) => setFile(event.target.files?.[0] || null)} required />
             </label>
 
             <div className="rounded-2xl border border-slate-800/50 bg-slate-950/50 p-4">

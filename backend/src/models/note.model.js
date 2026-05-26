@@ -8,7 +8,7 @@ const noteFields = `
 export const createFileNote = async ({ userId, title, s3Key, fileName, contentType, fileSize }) => {
   const result = await query(
     `INSERT INTO notes (user_id, title, s3_key, note_type, file_name, content_type, file_size)
-     VALUES ($1, $2, $3, $4, $5, $6)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING ${noteFields}`,
     [userId, title, s3Key, "file", fileName, contentType, fileSize]
   );

@@ -1,13 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/features/auth/auth-provider";
 import { getApiError } from "@/services/api";
 import { createTextNote, deleteNote, fetchNote, fetchNotes, getDownloadUrl, updateTextNote, uploadNote, type CreateTextNoteInput, type UpdateTextNoteInput } from "@/services/notes";
 import type { Note } from "@/types/note";
 
-export function useNotes() {
+export function useNotes({ loadOnMount = true }: { loadOnMount?: boolean } = {}) {
+  const { isAuthenticated, isReady } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(loadOnMount);
   const [error, setError] = useState("");
 
   const loadNotes = useCallback(async () => {
@@ -23,8 +25,13 @@ export function useNotes() {
   }, []);
 
   useEffect(() => {
-    loadNotes();
-  }, [loadNotes]);
+    if (loadOnMount && isReady && isAuthenticated) {
+      void loadNotes();
+    } else if (!loadOnMount || isReady) {
+      setNotes([]);
+      setLoading(false);
+    }
+  }, [isAuthenticated, isReady, loadNotes, loadOnMount]);
 
   const upload = useCallback(async (input: { title: string; file: File; onProgress?: (progress: number) => void }) => {
     const note = await uploadNote(input);

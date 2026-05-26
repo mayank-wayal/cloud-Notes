@@ -8,11 +8,12 @@ export const notFound = (req, res, next) => {
 export const errorHandler = (err, req, res, next) => {
   const responseStatus = res.statusCode >= 400 ? res.statusCode : 500;
   const statusCode = err.statusCode || responseStatus;
+  const hideServerDetails = env.nodeEnv === "production" && statusCode >= 500;
 
   res.status(statusCode).json({
     success: false,
-    message: err.message || "Internal server error",
-    details: err.details || undefined,
+    message: hideServerDetails ? "Internal server error" : err.message || "Internal server error",
+    details: hideServerDetails ? undefined : err.details || undefined,
     stack: env.nodeEnv === "production" ? undefined : err.stack
   });
 };

@@ -30,6 +30,17 @@ if (!/^[a-z]{2}-[a-z]+-\d_[A-Za-z0-9]+$/.test(process.env.COGNITO_USER_POOL_ID))
   throw new Error("COGNITO_USER_POOL_ID must look like us-east-1_abc123xyz");
 }
 
+const cognitoJwksTimeoutMs = Number(process.env.COGNITO_JWKS_TIMEOUT_MS || 10000);
+const databaseConnectRetries = Number(process.env.DATABASE_CONNECT_RETRIES || 3);
+
+if (!Number.isFinite(cognitoJwksTimeoutMs) || cognitoJwksTimeoutMs <= 0) {
+  throw new Error("COGNITO_JWKS_TIMEOUT_MS must be a positive number");
+}
+
+if (!Number.isInteger(databaseConnectRetries) || databaseConnectRetries < 0) {
+  throw new Error("DATABASE_CONNECT_RETRIES must be a non-negative integer");
+}
+
 export const env = {
   nodeEnv: process.env.NODE_ENV || "development",
   port: Number(process.env.PORT || 5000),
@@ -37,6 +48,7 @@ export const env = {
   clientUrls: (process.env.CLIENT_URLS || process.env.CLIENT_URL || "http://localhost:3000").split(",").map((origin) => origin.trim()).filter(Boolean),
   databaseUrl: process.env.DATABASE_URL,
   databaseSsl: process.env.DATABASE_SSL === "true",
+  databaseConnectRetries,
   awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
   awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   awsRegion: process.env.AWS_REGION,
@@ -48,5 +60,6 @@ export const env = {
   // Cognito configuration
   cognitoUserPoolId: process.env.COGNITO_USER_POOL_ID,
   cognitoClientId: process.env.COGNITO_CLIENT_ID,
-  cognitoRegion: process.env.COGNITO_REGION || process.env.AWS_REGION
+  cognitoRegion: process.env.COGNITO_REGION || process.env.AWS_REGION,
+  cognitoJwksTimeoutMs
 };

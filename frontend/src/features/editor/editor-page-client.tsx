@@ -4,12 +4,13 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Check, Eye, EyeOff, Loader2, Pin, Plus, Save, SplitSquareHorizontal, Tag, UploadCloud } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { KeyboardEvent, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { MarkdownPreview } from "@/components/editor/markdown-preview";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { fadeUp, staggerContainer } from "@/components/layout/motion-shell";
 import { useToast } from "@/components/providers/toast-provider";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/features/auth/auth-provider";
 import { ProtectedRoute } from "@/features/auth/protected-route";
 import { useNotes } from "@/hooks/use-notes";
 import { getApiError } from "@/services/api";
@@ -34,7 +35,8 @@ export function EditorPageClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const id = searchParams?.get("id");
-  const { get, create, update } = useNotes();
+  const { isAuthenticated, isReady } = useAuth();
+  const { get, create, update } = useNotes({ loadOnMount: false });
   const { toast } = useToast();
   const [note, setNote] = useState<Note | null>(null);
   const [title, setTitle] = useState("Untitled note");
@@ -47,6 +49,7 @@ export function EditorPageClient() {
   const [showPreview, setShowPreview] = useState(true);
   const lastSavedRef = useRef("");
   const loadedExisting = Boolean(note?.id);
+  const previewContent = useDeferredValue(content);
 
   const payload = useMemo(
     () => ({
@@ -61,6 +64,8 @@ export function EditorPageClient() {
   const payloadKey = useMemo(() => JSON.stringify(payload), [payload]);
 
   const loadNote = useCallback(async () => {
+    if (!isReady || !isAuthenticated) return;
+
     if (!id) {
       setIsLoading(false);
       lastSavedRef.current = "";
@@ -93,7 +98,7 @@ export function EditorPageClient() {
     } finally {
       setIsLoading(false);
     }
-  }, [get, id, router, toast]);
+  }, [get, id, isAuthenticated, isReady, router, toast]);
 
   useEffect(() => {
     void loadNote();
@@ -134,10 +139,10 @@ export function EditorPageClient() {
   );
 
   useEffect(() => {
-    if (isLoading || payloadKey === lastSavedRef.current) return;
+    if (!isReady || !isAuthenticated || isLoading || payloadKey === lastSavedRef.current) return;
     const timeout = window.setTimeout(() => void save(true), 1400);
     return () => window.clearTimeout(timeout);
-  }, [isLoading, payloadKey, save]);
+  }, [isAuthenticated, isLoading, isReady, payloadKey, save]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
@@ -244,7 +249,7 @@ export function EditorPageClient() {
                       <p className="text-sm font-semibold text-white">Live preview</p>
                     </div>
                     <div className="h-[626px] overflow-auto p-6">
-                      <MarkdownPreview content={content} />
+                      <MarkdownPreview content={previewContent} />
                     </div>
                   </section>
                 ) : null}

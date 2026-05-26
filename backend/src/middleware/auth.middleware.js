@@ -1,14 +1,36 @@
 import { CognitoJwtVerifier } from "aws-jwt-verify";
+import { FetchError } from "aws-jwt-verify/error";
+import { SimpleFetcher } from "aws-jwt-verify/https";
+import { SimpleJwksCache } from "aws-jwt-verify/jwk";
 import { AppError } from "../utils/AppError.js";
 import { env } from "../config/env.js";
 
-const verifier = CognitoJwtVerifier.create({
-  userPoolId: env.cognitoUserPoolId,
-  tokenUse: "access",
-  clientId: env.cognitoClientId
-});
+const verifier = CognitoJwtVerifier.create(
+  {
+    userPoolId: env.cognitoUserPoolId,
+    tokenUse: "access",
+    clientId: env.cognitoClientId
+  },
+  {
+    jwksCache: new SimpleJwksCache({
+      fetcher: new SimpleFetcher({
+        defaultRequestOptions: {
+          responseTimeout: env.cognitoJwksTimeoutMs
+        }
+      })
+    })
+  }
+);
 
 const toAuthError = (error) => {
+  if (error instanceof AppError) {
+    return error;
+  }
+
+  if (error instanceof FetchError) {
+    return new AppError("Authentication service is temporarily unavailable", 503);
+  }
+
   if (error.name === "NotBeforeError" || error.name === "TokenExpiredError") {
     return new AppError("Token has expired", 401);
   }
@@ -22,8 +44,10 @@ const toAuthError = (error) => {
     return new AppError("Invalid authentication token", 401);
   }
 
-  return error;
+  return new AppError("Invalid authentication token", 401);
 };
+
+export const hydrateAuthVerifier = () => verifier.hydrate();
 
 export const authenticate = async (req, res, next) => {
   try {

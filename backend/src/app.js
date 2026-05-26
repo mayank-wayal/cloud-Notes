@@ -3,9 +3,11 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
+import { query } from "./config/db.js";
 import { env } from "./config/env.js";
 import { errorHandler, notFound } from "./middleware/error.middleware.js";
 import noteRoutes from "./routes/note.routes.js";
+import { AppError } from "./utils/AppError.js";
 
 const app = express();
 
@@ -15,7 +17,7 @@ app.use(
   cors({
     origin: (origin, callback) => {
       if (!origin || env.clientUrls.includes(origin)) return callback(null, true);
-      return callback(new Error("Not allowed by CORS"));
+      return callback(new AppError("Origin is not allowed", 403));
     },
     credentials: true
   })
@@ -32,13 +34,17 @@ app.use(
   })
 );
 
-app.get("/health", (req, res) => {
-  res.json({ status: "ok", service: "cloudnotes-api" });
-});
+const health = async (req, res) => {
+  try {
+    await query("SELECT 1");
+    res.json({ status: "ok", service: "cloudnotes-api", database: "ok" });
+  } catch {
+    res.status(503).json({ status: "error", service: "cloudnotes-api", database: "unavailable" });
+  }
+};
 
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", service: "cloudnotes-api" });
-});
+app.get("/health", health);
+app.get("/api/health", health);
 
 app.use("/api/notes", noteRoutes);
 app.use(notFound);

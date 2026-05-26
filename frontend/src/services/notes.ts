@@ -44,9 +44,6 @@ export const uploadNote = async ({ title, file, onProgress }: UploadNoteInput) =
   formData.append("file", file);
 
   const { data } = await api.post<{ success: boolean; note: Note }>("/notes/upload", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data"
-    },
     onUploadProgress: (event) => {
       if (!event.total) return;
       onProgress?.(Math.round((event.loaded * 100) / event.total));

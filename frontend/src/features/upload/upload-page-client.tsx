@@ -11,7 +11,7 @@ import { useNotes } from "@/hooks/use-notes";
 import { getApiError } from "@/services/api";
 
 export function UploadPageClient() {
-  const { upload } = useNotes();
+  const { upload } = useNotes({ loadOnMount: false });
   const { toast } = useToast();
 
   const handleUpload = async (input: { title: string; file: File; onProgress?: (progress: number) => void }) => {

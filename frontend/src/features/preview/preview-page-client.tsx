@@ -30,7 +30,7 @@ export function PreviewPageClient() {
   const id = searchParams?.get("id");
   const { notes, loading, download } = useNotes();
   const { toast } = useToast();
-  const note = notes.find((item) => item.id === id) || notes[0];
+  const note = id ? notes.find((item) => item.id === id) : notes[0];
   const [preview, setPreview] = useState<NotePreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState("");

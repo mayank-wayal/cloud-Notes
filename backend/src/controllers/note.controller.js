@@ -48,13 +48,7 @@ export const uploadNote = async (req, res, next) => {
     });
     console.error(error);
 
-    res.status(error.statusCode || 500).json({
-      success: false,
-      message: "Upload failed",
-      error: error.message,
-      details: error.details || undefined,
-      stack: process.env.NODE_ENV === "production" ? undefined : error.stack
-    });
+    next(error);
   }
 };
 
