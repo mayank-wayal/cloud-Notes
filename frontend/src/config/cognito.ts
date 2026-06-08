@@ -8,6 +8,7 @@ const cognitoConfig = {
       userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || "",
       userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || "",
       region: process.env.NEXT_PUBLIC_COGNITO_REGION || "us-east-1"
+
     }
   }
 };
@@ -15,6 +16,7 @@ const cognitoConfig = {
 export const isCognitoConfigured =
   !isPlaceholder(cognitoConfig.Auth.Cognito.userPoolId) &&
   !isPlaceholder(cognitoConfig.Auth.Cognito.userPoolClientId);
+
 
 if (isCognitoConfigured) {
   Amplify.configure(cognitoConfig);

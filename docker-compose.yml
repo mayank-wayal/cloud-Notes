@@ -26,7 +26,11 @@ services:
     environment:
       NODE_ENV: development
       PORT: 5000
-      DATABASE_URL: postgresql://cloudnotes:cloudnotes_password@postgres:5432/cloudnotes
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: cloudnotes
+      DB_USER: cloudnotes
+      DB_PASSWORD: cloudnotes_password
       DATABASE_SSL: "false"
       CLIENT_URL: http://localhost:8080
     ports:

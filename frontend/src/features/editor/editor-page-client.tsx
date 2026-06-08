@@ -106,7 +106,7 @@ export function EditorPageClient() {
 
   const save = useCallback(
     async (quiet = false) => {
-      if (isSaving || payloadKey === lastSavedRef.current) return note;
+      if (payloadKey === lastSavedRef.current) return note;
 
       try {
         setIsSaving(true);
@@ -135,14 +135,14 @@ export function EditorPageClient() {
         setIsSaving(false);
       }
     },
-    [create, isSaving, loadedExisting, note, payload, payloadKey, router, toast, update]
+    [create, loadedExisting, note, payload, payloadKey, router, toast, update]
   );
 
   useEffect(() => {
-    if (!isReady || !isAuthenticated || isLoading || payloadKey === lastSavedRef.current) return;
+    if (!isReady || !isAuthenticated || isLoading || isSaving || payloadKey === lastSavedRef.current) return;
     const timeout = window.setTimeout(() => void save(true), 1400);
     return () => window.clearTimeout(timeout);
-  }, [isAuthenticated, isLoading, isReady, payloadKey, save]);
+  }, [isAuthenticated, isLoading, isReady, isSaving, payloadKey, save]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {

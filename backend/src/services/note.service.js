@@ -45,7 +45,16 @@ export const uploadUserNote = async ({ userId, title, file }) => {
       key: s3Key
     });
     console.error(error);
-    await deleteFileFromS3(s3Key);
+    try {
+      await deleteFileFromS3(s3Key);
+    } catch (cleanupError) {
+      console.error("[notes] Failed to delete orphaned S3 object after metadata error", {
+        userId,
+        key: s3Key,
+        errorName: cleanupError.name,
+        errorMessage: cleanupError.message
+      });
+    }
     throw error;
   }
 };
@@ -84,7 +93,19 @@ export const removeUserNote = async ({ userId, noteId }) => {
   }
 
   if (deleted.note_type === "file" && deleted.s3_key) {
-    await deleteFileFromS3(deleted.s3_key);
+    try {
+      await deleteFileFromS3(deleted.s3_key);
+    } catch (s3Error) {
+      console.error("[notes] Failed to delete S3 object after database delete", {
+        userId,
+        noteId,
+        s3Key: deleted.s3_key,
+        errorName: s3Error.name,
+        errorMessage: s3Error.message
+      });
+      // Log error but don't fail the entire operation since database is already deleted
+      // User still gets success response but orphaned file will need manual cleanup
+    }
   }
 
   return deleted;

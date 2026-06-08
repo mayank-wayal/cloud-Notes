@@ -7,12 +7,26 @@ import { AppError } from "../utils/AppError.js";
 
 const sanitizeFileName = (name) => name.replace(/[^a-zA-Z0-9._-]/g, "_");
 
+/**
+ * Wraps a promise with a timeout
+ * @param {Promise} promise - Promise to wrap
+ * @param {number} ms - Timeout in milliseconds (default: 30000)
+ * @param {string} operation - Operation name for error message
+ */
+const withTimeout = (promise, ms = 30000, operation = "Operation") => 
+  Promise.race([
+    promise,
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new AppError(`${operation} timed out after ${ms}ms`, 504)), ms)
+    )
+  ]);
+
 const awsErrorMessages = {
-  AccessDenied: "S3 access denied. Check the IAM user's s3:PutObject permission for this bucket and key prefix.",
-  InvalidAccessKeyId: "AWS access key ID is invalid. Check AWS_ACCESS_KEY_ID.",
-  SignatureDoesNotMatch: "AWS request signature did not match. Check AWS_SECRET_ACCESS_KEY and AWS_REGION.",
+  AccessDenied: "S3 access denied. Check the EC2 instance profile permissions for this bucket and key prefix.",
+  InvalidAccessKeyId: "AWS credential resolution failed. Check the EC2 instance profile or local AWS profile.",
+  SignatureDoesNotMatch: "AWS request signature did not match. Check AWS_REGION and the instance profile credentials.",
   NoSuchBucket: "S3 bucket does not exist. Check S3_BUCKET_NAME.",
-  CredentialsProviderError: "AWS credentials are missing or could not be loaded. Check AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY.",
+  CredentialsProviderError: "AWS credentials are missing or could not be loaded. Attach an IAM role to EC2 or configure a local AWS profile.",
   PermanentRedirect: "S3 bucket is in a different region. Check AWS_REGION.",
   AuthorizationHeaderMalformed: "AWS region mismatch for this S3 bucket. Check AWS_REGION."
 };
@@ -47,16 +61,20 @@ export const uploadFileToS3 = async ({ key, file }) => {
   });
 
   try {
-    const result = await s3Client.send(
-      new PutObjectCommand({
-        Bucket: env.s3BucketName,
-        Key: key,
-        Body: file.buffer,
-        ContentType: file.mimetype,
-        Metadata: {
-          originalName: file.originalname
-        }
-      })
+    const result = await withTimeout(
+      s3Client.send(
+        new PutObjectCommand({
+          Bucket: env.s3BucketName,
+          Key: key,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+          Metadata: {
+            originalName: file.originalname
+          }
+        })
+      ),
+      30000,
+      "S3 upload"
     );
 
     console.log("[s3] Upload successful", {
@@ -83,12 +101,28 @@ export const uploadFileToS3 = async ({ key, file }) => {
 };
 
 export const deleteFileFromS3 = async (key) => {
-  await s3Client.send(
-    new DeleteObjectCommand({
-      Bucket: env.s3BucketName,
-      Key: key
-    })
-  );
+  try {
+    await withTimeout(
+      s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: env.s3BucketName,
+          Key: key
+        })
+      ),
+      30000,
+      "S3 delete"
+    );
+  } catch (error) {
+    console.error("[s3] Delete failed", {
+      bucket: env.s3BucketName,
+      region: env.awsRegion,
+      key,
+      errorName: error.name,
+      errorMessage: error.message,
+      metadata: error.$metadata
+    });
+    throw toS3Error(error, "Failed to delete S3 object");
+  }
 };
 
 export const createDownloadUrl = async ({ key, fileName }) => {

@@ -36,7 +36,7 @@ api.interceptors.response.use(
 
 export const getApiError = (error: unknown) => {
   if (error instanceof AxiosError) {
-    return error.response?.data?.error || error.response?.data?.message || error.message || "Something went wrong";
+    return error.response?.data?.message || error.message || "Something went wrong";
   }
 
   if (error instanceof Error) return error.message;

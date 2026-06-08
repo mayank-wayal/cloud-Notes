@@ -9,7 +9,11 @@
     "lint": "tsc --noEmit",
     "start": "node .next/standalone/server.js",
     "pm2:start": "pm2 start ecosystem.config.cjs --env production",
-    "pm2:reload": "pm2 reload cloudnotes-web"
+    "pm2:reload": "pm2 reload cloudnotes-web",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand"
   },
   "dependencies": {
     "@aws-amplify/auth": "^6.20.0",
@@ -26,14 +30,22 @@
   },
   "devDependencies": {
     "@eslint/js": "9.39.4",
+    "@jest/globals": "^29.7.0",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.1",
+    "@types/jest": "^29.5.11",
     "@types/node": "24.10.2",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "autoprefixer": "10.4.20",
     "eslint": "9.39.4",
     "globals": "15.11.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "postcss": "8.5.14",
     "tailwindcss": "3.4.17",
+    "ts-jest": "^29.1.1",
     "typescript": "5.9.3"
   }
 }

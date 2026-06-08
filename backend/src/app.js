@@ -6,6 +6,7 @@ import morgan from "morgan";
 import { query } from "./config/db.js";
 import { env } from "./config/env.js";
 import { errorHandler, notFound } from "./middleware/error.middleware.js";
+import authRoutes from "./routes/auth.routes.js";
 import noteRoutes from "./routes/note.routes.js";
 import { AppError } from "./utils/AppError.js";
 
@@ -46,6 +47,7 @@ const health = async (req, res) => {
 app.get("/health", health);
 app.get("/api/health", health);
 
+app.use("/api/auth", authRoutes);
 app.use("/api/notes", noteRoutes);
 app.use(notFound);
 app.use(errorHandler);
